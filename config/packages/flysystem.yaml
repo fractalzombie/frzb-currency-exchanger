@@ -1,0 +1,6 @@
+flysystem:
+    storages:
+        bin.storage:
+            adapter: 'local'
+            options:
+                directory: '%kernel.project_dir%/var/storage/bin'
