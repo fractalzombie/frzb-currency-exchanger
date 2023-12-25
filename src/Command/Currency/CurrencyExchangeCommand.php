@@ -27,12 +27,12 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
-#[AsCommand('currency:commission:rate')]
-class CurrencyCommissionCommand extends Command
+#[AsCommand('currency:exchange')]
+class CurrencyExchangeCommand extends Command
 {
     private const array SERIALIZER_CONTEXT = [
         'disable_type_enforcement' => true,
@@ -41,9 +41,7 @@ class CurrencyCommissionCommand extends Command
 
     public function __construct(
         private readonly CurrencyRateExchangerInterface $currencyRateService,
-        private readonly SerializerInterface $serializer,
-        #[Autowire(param: 'kernel.project_dir')]
-        private readonly string $projectDirectory,
+        private readonly DenormalizerInterface&SerializerInterface $serializer,
     ) {
         parent::__construct();
     }
@@ -51,8 +49,8 @@ class CurrencyCommissionCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setDescription('Command for commission rate')
-            ->addArgument('file_name', InputArgument::OPTIONAL, 'File name for rate', 'test.txt')
+            ->setDescription('Command for currency exchange')
+            ->addArgument('file_path', InputArgument::OPTIONAL, 'Path to file with data')
         ;
     }
 
@@ -61,23 +59,18 @@ class CurrencyCommissionCommand extends Command
         $io = new SymfonyStyle($input, $output);
 
         try {
-            $fileName = $input->getArgument('file_name');
+            $rawContent = file_get_contents($input->getArgument('file_path'));
 
-            $content = file_get_contents("{$this->projectDirectory}/{$fileName}");
+            $exchangeAmountList = match (true) {
+                json_validate($rawContent) => $this->whenJsonValid($rawContent),
+                !json_validate($rawContent) => $this->whenJsonInvalid($rawContent),
+            };
 
-            if (!json_validate($content)) {
-                $rows = ArrayList::collect(explode(\PHP_EOL, $content))
-                    ->filter(static fn (string $row) => !empty($row))
-                    ->map(fn (string $row) => $this->serializer->deserialize($row, ExchangeAmount::class, JsonEncoder::FORMAT, self::SERIALIZER_CONTEXT))
-                    ->toList()
-                ;
-
-                foreach ($this->currencyRateService->exchangeAll(Currency::Euro, ...$rows) as $exchanged) {
-                    match ($exchanged::class) {
-                        ExchangedAmount::class => $io->success(sprintf('BIN: %s exchanged: %s', $exchanged->context->exchangeAmount->bin, $exchanged->amount)),
-                        ExchangedError::class => $io->error($exchanged->getExchangedInfo()),
-                    };
-                }
+            foreach ($this->currencyRateService->exchangeAll(Currency::Euro, ...$exchangeAmountList) as $exchanged) {
+                match ($exchanged::class) {
+                    ExchangedAmount::class => $io->success(sprintf('BIN: %s exchanged: %s', $exchanged->context->exchangeAmount->bin, $exchanged->amount)),
+                    ExchangedError::class => $io->error($exchanged->getExchangedInfo()),
+                };
             }
 
             return self::SUCCESS;
@@ -86,5 +79,24 @@ class CurrencyCommissionCommand extends Command
 
             return self::FAILURE;
         }
+    }
+
+    private function whenJsonValid(string $rawContent): iterable
+    {
+        return ArrayList::collect(json_decode($rawContent, true))
+            ->filter(static fn (array $row) => !empty($row))
+            ->map(fn (array $row) => $this->serializer->denormalize($row, ExchangeAmount::class, JsonEncoder::FORMAT, self::SERIALIZER_CONTEXT))
+            ->toList()
+        ;
+    }
+
+    private function whenJsonInvalid(string $rawContent): iterable
+    {
+        return ArrayList::collect(explode(\PHP_EOL, $rawContent))
+            ->filter(static fn (string $row) => !empty($row))
+            ->map(trim(...))
+            ->map(fn (string $row) => $this->serializer->deserialize($row, ExchangeAmount::class, JsonEncoder::FORMAT, self::SERIALIZER_CONTEXT))
+            ->toList()
+        ;
     }
 }

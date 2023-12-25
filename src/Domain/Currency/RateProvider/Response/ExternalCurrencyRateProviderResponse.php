@@ -25,7 +25,7 @@ final readonly class ExternalCurrencyRateProviderResponse
         public \DateTimeImmutable $actualDate,
         #[SerializedName('base')]
         public Currency $baseCurrency,
-        /** @var array<Currency, float> */
+        /** @var array<string, float> */
         public array $rates,
     ) {}
 

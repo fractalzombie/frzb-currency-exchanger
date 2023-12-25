@@ -22,8 +22,8 @@ use App\Domain\Currency\ValueObject\ExchangeAmount;
 
 interface CurrencyRateExchangerInterface
 {
-    public function exchange(Currency $baseCurrency, ExchangeAmount $currencyCommission): ExchangedAmount;
+    public function exchange(Currency $baseCurrency, ExchangeAmount $exchangeAmount): ExchangedAmount|ExchangedError;
 
     /** @return ExchangedAmount[]|ExchangedError[] */
-    public function exchangeAll(Currency $baseCurrency, ExchangeAmount ...$currencyCommissions): iterable;
+    public function exchangeAll(Currency $baseCurrency, ExchangeAmount ...$exchangeAmountList): iterable;
 }

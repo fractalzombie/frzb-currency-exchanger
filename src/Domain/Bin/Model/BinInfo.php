@@ -30,7 +30,7 @@ final readonly class BinInfo
         public BankInfo $bankInfo,
         public ?bool $prepaid = null,
         #[SerializedName('number')]
-        public ?Number $numberInfo = null,
+        public ?NumberInfo $numberInfo = null,
     ) {}
 
     public static function fromEmpty(): self

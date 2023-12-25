@@ -20,7 +20,7 @@ use JetBrains\PhpStorm\Immutable;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[Immutable]
-readonly class CurrencyCommissionRequest
+readonly class CurrencyExchangeRequest
 {
     public function __construct(
         /** @var ExchangeAmount[] */
@@ -29,6 +29,6 @@ readonly class CurrencyCommissionRequest
         #[Assert\All(
             new Assert\Type(ExchangeAmount::class)
         )]
-        public array $commissions,
+        public array $amountList,
     ) {}
 }

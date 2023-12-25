@@ -1,4 +1,4 @@
 currency:
-    resource: ../src/Action/Currency/
-    prefix: /api/v1/currency
+    resource: ../src/Action/Exchange/
+    prefix: /api/v1/exchange
     type: attribute

@@ -37,7 +37,7 @@ readonly class StorageBinProvider implements StorageBinProviderInterface
         private FilesystemOperator $binStorage,
         private SerializerInterface $serializer,
         private ClockInterface $clock,
-        #[Autowire(env: 'PROVIDER_BINLIST_LOCAL_DATETIME_FORMAT')]
+        #[Autowire(env: 'PROVIDER_BINLIST_LOCAL_DATETIME_CACHE_FORMAT')]
         private string $dateFormat,
     ) {}
 

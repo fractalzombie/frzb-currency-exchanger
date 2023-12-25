@@ -13,12 +13,12 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace App\Action\Currency;
+namespace App\Action\Exchange;
 
 use App\Domain\Common\Enum\AL3\Currency;
 use App\Domain\Currency\Exchanger\CurrencyRateExchangerInterface;
 use App\Domain\HttpFoundation\Enum\StatusCode;
-use App\Infrastructure\Currency\Http\Request\CurrencyCommissionRequest;
+use App\Infrastructure\Currency\Http\Request\CurrencyExchangeRequest;
 use App\Infrastructure\Currency\Http\Response\CurrencyCommissionResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,16 +28,16 @@ use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[AsController]
-final readonly class CommissionAction
+final readonly class ExchangeAction
 {
     public function __construct(
         private CurrencyRateExchangerInterface $currencyRateService,
     ) {}
 
     #[Route(methods: Request::METHOD_POST)]
-    public function __invoke(#[MapRequestPayload] CurrencyCommissionRequest $request): Response
+    public function __invoke(#[MapRequestPayload] CurrencyExchangeRequest $request): Response
     {
-        $exchangedList = $this->currencyRateService->exchangeAll(Currency::Euro, ...$request->commissions);
+        $exchangedList = $this->currencyRateService->exchangeAll(Currency::Euro, ...$request->amountList);
 
         return new JsonResponse(CurrencyCommissionResponse::fromExchangedContext(...$exchangedList), StatusCode::OK);
     }

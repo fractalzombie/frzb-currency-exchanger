@@ -33,7 +33,7 @@ $header = <<<'EOF'
 $finder = PhpCsFixer\Finder::create()
     ->exclude('var')
     ->exclude('vendor')
-    ->in(["{$projectDirectory}/src", "{$projectDirectory}/public"])
+    ->in(["{$projectDirectory}/src", "{$projectDirectory}/public", "{$projectDirectory}/tests"])
 ;
 
 $rules = [

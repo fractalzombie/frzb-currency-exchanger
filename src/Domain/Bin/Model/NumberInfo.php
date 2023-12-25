@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Bin\Model;
 
-final readonly class Number
+final readonly class NumberInfo
 {
     public function __construct(
         public ?int $length = null,
